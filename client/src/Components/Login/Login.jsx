@@ -1,17 +1,30 @@
 import React, { useState } from "react";
 import { AiOutlineEye } from "react-icons/ai";
 import { AiOutlineEyeInvisible } from "react-icons/ai";
-import {Link} from 'react-router-dom'
+import {Link, Navigate, useNavigate} from 'react-router-dom'
 import styles from "../../Styles/styles";
+import axios from "axios";
+import { server } from "../../server";
+import { toast } from "react-toastify";
 
 const Login = () => {
+  const navigate=useNavigate()
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
 
-  const handleSubmit=(e)=>{
+  const handleSubmit=async (e)=>{
     e.preventDefault();
-    console.log("submit");
+    await axios.post(`${server}/login-user`,{
+      email,
+      password
+    },{withCredentials:true}).then((res)=>{
+        toast.success("Login success")
+        window.location.reload(true);
+        navigate("/")
+    }).catch((err)=>{
+      toast.error(err.response.data.message)
+    })
   }
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">

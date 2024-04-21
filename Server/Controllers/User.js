@@ -18,8 +18,8 @@ router
       const { name, email, password } = req.body;
       const userEmail = await User.findOne({ email });
       if (userEmail) {
-        const filenName = req.file.filename;
-        const filePath = `uploads/${filenName}`;
+        const fileName = req.file.filename;
+        const filePath = `uploads/${fileName}`;
         fs.unlink(filePath, (error) => {
           if (error) {
             console.log(error);
@@ -95,11 +95,31 @@ router.post(
       }
       user = await User.create({ name, email, password, avatar });
       sendToken(user, 201, res);
-      console.log(newUser);
-      console.log(user);
+      // console.log(newUser);
+      // console.log(user);
     } catch (error) {
       return next(new ErrorHandler(error.message, 500));
     }
   })
 );
+
+router.post("/login-user", catchAsyncError(async(req, res,next) => {
+  try{
+    const {email,password}=req.body
+    if(!email || !password){
+      return next(new ErrorHandler("please provide all fields",400))
+    }
+    const user= await User.findOne({email}).select("+password")
+    if(!user){
+      return next(new ErrorHandler("Requested User not Found",400))
+    }
+    const isPasswordValid=await user.comparePassword(password)
+    if(!isPasswordValid){
+      return next(new ErrorHandler("Invalid credentials",400))
+    }
+    sendToken(user,201,res)
+  }catch(err){
+    return next(new ErrorHandler(err.message,500))
+  }
+}));
 module.exports = router;
